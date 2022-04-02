@@ -1,0 +1,6 @@
+{
+  "tasks": {
+    "build": "deno run --allow-env --allow-read --allow-run build.ts",
+    "start": "deno run --allow-run --allow-env test.ts"
+  }
+}
