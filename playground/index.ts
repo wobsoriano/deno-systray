@@ -1,8 +1,8 @@
-import SysTray from "./mod.ts";
-import testjson from "./test.json" assert { type: "json" };
+import SysTray from "../mod.ts";
+import menu from "./menu.json" assert { type: "json" };
 
 const systray = new SysTray({
-  menu: testjson,
+  menu,
   debug: true,
 });
 

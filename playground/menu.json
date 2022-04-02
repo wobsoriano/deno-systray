@@ -3,7 +3,23 @@
   "title": "标题",
   "tooltip": "Tips",
   "items": [
-    { "title": "aa", "tooltip": "bb", "checked": true, "enabled": true },
-    { "title": "aa2", "tooltip": "bb", "checked": false, "enabled": true }
+    {
+      "title": "aa",
+      "tooltip": "bb",
+      "checked": true,
+      "enabled": true
+    },
+    {
+      "title": "aa2",
+      "tooltip": "bb",
+      "checked": false,
+      "enabled": true
+    },
+    {
+      "title": "Exit",
+      "tooltip": "bb",
+      "checked": false,
+      "enabled": true
+    }
   ]
 }
