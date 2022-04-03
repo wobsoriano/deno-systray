@@ -63,7 +63,7 @@ export type Conf = {
 const OS = Deno.build.os;
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
-
+console.log(__dirname);
 const getTrayBinPath = () => {
   const binName = {
     windows: "tray_windows.exe",
