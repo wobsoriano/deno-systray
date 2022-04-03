@@ -40,6 +40,7 @@ await Promise.all([
       "-ldflags",
       "-s -w",
       "tray.go",
+      "-H=windowsgui",
     ],
   }).status(),
 ]);
