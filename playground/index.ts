@@ -1,9 +1,8 @@
-import SysTray from "../mod.ts";
+import SysTray from "https://x.nest.land/systray@0.1.5/mod.ts";
 import menu from "./menu.json" assert { type: "json" };
 
 const systray = new SysTray({
   menu,
-  debug: true,
 });
 
 systray.onClick((action) => {

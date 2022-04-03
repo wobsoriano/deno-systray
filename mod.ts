@@ -57,7 +57,6 @@ export type Action =
 
 export type Conf = {
   menu: Menu;
-  debug?: boolean;
   copyDir?: boolean | string;
 };
 
@@ -65,13 +64,13 @@ const OS = Deno.build.os;
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
 
-const getTrayBinPath = (debug = false) => {
+const getTrayBinPath = () => {
   const binName = {
-    windows: `tray_windows${debug ? "" : "_release"}.exe`,
-    darwin: `tray_darwin${debug ? "" : "_release"}`,
-    linux: `tray_linux${debug ? "" : "_release"}`,
+    windows: "tray_windows.exe",
+    darwin: "tray_darwin",
+    linux: "tray_linux",
   }[OS];
-  const binPath = path.resolve(`${__dirname}/traybin/${binName}`);
+  const binPath = path.join(__dirname, `./traybin/${binName}`);
   return binPath;
 };
 
@@ -96,7 +95,7 @@ export default class SysTray extends EventEmitter<Record<never, never>> {
   constructor(conf: Conf) {
     super();
     this._conf = conf;
-    this._binPath = getTrayBinPath(conf.debug);
+    this._binPath = getTrayBinPath();
     this._process = Deno.run({
       cmd: [this._binPath],
       stdin: "piped",

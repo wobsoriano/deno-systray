@@ -5,7 +5,7 @@ SysTray module for Deno using the [go systray library](https://github.com/getlan
 ## Usage
 
 ```ts
-import SysTray from "https://deno.land/x/systray@v0.1.0/mod.ts";
+import SysTray from "https://x.nest.land/systray@0.1.5/mod.ts";
 
 const systray = new SysTray({
   menu: {
@@ -35,7 +35,6 @@ const systray = new SysTray({
       },
     ],
   },
-  debug: false,
 });
 
 systray.onClick((action) => {

@@ -1,46 +1,36 @@
 console.log("Building executable files...");
 await Promise.all([
   Deno.run({
-    cmd: ["go", "build", "-o", "./traybin/tray_darwin", "tray.go"],
-  }).status(),
-  Deno.run({
     cmd: [
       "go",
       "build",
       "-o",
-      "./traybin/tray_darwin_release",
+      "./traybin/tray_darwin",
       "-ldflags",
       "-s -w",
       "tray.go",
     ],
   }).status(),
   Deno.run({
-    cmd: ["go", "build", "-o", "./traybin/tray_linux", "tray.go"],
-  }).status(),
-  Deno.run({
     cmd: [
       "go",
       "build",
       "-o",
-      "./traybin/tray_linux_release",
+      "./traybin/tray_linux",
       "-ldflags",
       "-s -w",
       "tray.go",
     ],
   }).status(),
   Deno.run({
-    cmd: ["go", "build", "-o", "./traybin/tray_windows.exe", "tray.go"],
-  }).status(),
-  Deno.run({
     cmd: [
       "go",
       "build",
       "-o",
-      "./traybin/tray_windows_release.exe",
+      "./traybin/tray_windows.exe",
       "-ldflags",
-      "-s -w",
+      `"-s -w -H=windowsgui"`,
       "tray.go",
-      "-H=windowsgui",
     ],
   }).status(),
 ]);

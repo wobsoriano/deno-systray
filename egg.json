@@ -4,7 +4,7 @@
   "entry": "./mod.ts",
   "description": "A cross-platform systray library for Deno.",
   "homepage": "https://github.com/wobsoriano/deno-systray",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "releaseType": null,
   "unstable": false,
   "unlisted": false,
@@ -15,9 +15,8 @@
     "./LICENSE.md",
     "./deno.json"
   ],
-  "ignore": [".git"],
   "checkFormat": false,
   "checkTests": false,
   "checkInstallation": false,
-  "check": false
+  "check": true
 }
