@@ -3,6 +3,24 @@ import { readLines } from "https://deno.land/std@0.133.0/io/mod.ts";
 import { EventEmitter } from "https://deno.land/x/event@2.0.0/mod.ts";
 import Debug from "https://deno.land/x/debuglog@v1.0.0/debug.ts";
 
+function generateName({ url = import.meta.url }: { url: string }) {
+  const u: URL = new URL(url);
+  const f: string = u.protocol === "file:" ? u.pathname : url;
+  const d: string = f.replace(/[/][^/]*$/, "");
+  return {
+    d,
+    f,
+    dirname: d,
+    filename: f,
+    __dirname: d,
+    __filename: f,
+  };
+}
+
+export function dirname(meta: { url: string }) {
+  return generateName(meta).__dirname;
+}
+
 const debug = Debug("deno-systray");
 
 export type MenuItem = {
@@ -62,8 +80,9 @@ export type Conf = {
 
 const OS = Deno.build.os;
 
-const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
+const __dirname = dirname(import.meta);
 console.log(__dirname);
+
 const getTrayBinPath = () => {
   const binName = {
     windows: "tray_windows.exe",
