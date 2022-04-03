@@ -5,7 +5,7 @@ SysTray module for Deno using the [go systray library](https://github.com/getlan
 ## Usage
 
 ```ts
-import SysTray from "https://deno.land/x/systray@v0.1.1/mod.ts";
+import SysTray from "https://deno.land/x/systray@v0.1.0/mod.ts";
 
 const systray = new SysTray({
   menu: {
