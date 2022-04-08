@@ -1,186 +1,290 @@
-import * as path from "https://deno.land/std@0.133.0/path/mod.ts";
-import { readLines } from "https://deno.land/std@0.133.0/io/mod.ts";
-import { EventEmitter } from "https://deno.land/x/event@2.0.0/mod.ts";
-import Debug from "https://deno.land/x/debuglog@v1.0.0/debug.ts";
+import { getTrayPath, _debug  } from "./utils.ts";
+import { readLines, EventEmitter, base64Encode, getSignals } from './deps.ts'
 
-function generateName({ url = import.meta.url }: { url: string }) {
-  const u: URL = new URL(url);
-  const f: string = u.protocol === "file:" ? u.pathname : url;
-  const d: string = f.replace(/[/][^/]*$/, "");
-  return {
-    d,
-    f,
-    dirname: d,
-    filename: f,
-    __dirname: d,
-    __filename: f,
-  };
+export interface MenuItem {
+  title: string
+  tooltip: string
+  checked?: boolean
+  enabled?: boolean
+  hidden?: boolean
+  items?: MenuItem[]
+  icon?: string
+  isTemplateIcon?: boolean
 }
 
-export function dirname(meta: { url: string }) {
-  return generateName(meta).__dirname;
+interface MenuItemEx extends MenuItem {
+  __id: number
+  items?: MenuItemEx[]
 }
 
-const debug = Debug("deno-systray");
+export interface Menu {
+  icon: string
+  title: string
+  tooltip: string
+  items: MenuItem[]
+  isTemplateIcon?: boolean
+}
 
-export type MenuItem = {
-  title: string;
-  tooltip: string;
-  checked: boolean;
-  enabled: boolean;
-};
+export interface ClickEvent {
+  type: 'clicked'
+  item: MenuItem
+  seq_id: number
+  __id: number
+}
 
-export type Menu = {
-  icon: string;
-  title: string;
-  tooltip: string;
-  items: MenuItem[];
-};
+export interface ReadyEvent {
+  type: 'ready'
+}
 
-export type ClickEvent = {
-  type: "clicked";
-  item: MenuItem;
-  seq_id: number;
-};
+export type Event = ClickEvent | ReadyEvent
 
-export type ReadyEvent = {
-  type: "ready";
-};
+export interface UpdateItemAction {
+  type: 'update-item'
+  item: MenuItem
+  seq_id?: number
+}
 
-export type Event = ClickEvent | ReadyEvent;
+export interface UpdateMenuAction {
+  type: 'update-menu'
+  menu: Menu
+}
 
-export type UpdateItemAction = {
-  type: "update-item";
-  item: MenuItem;
-  seq_id: number;
-};
+export interface UpdateMenuAndItemAction {
+  type: 'update-menu-and-item'
+  menu: Menu
+  item: MenuItem
+  seq_id?: number
+}
 
-export type UpdateMenuAction = {
-  type: "update-menu";
-  menu: Menu;
-  seq_id: number;
-};
+export interface ExitAction {
+  type: 'exit'
+}
 
-export type UpdateMenuAndItemAction = {
-  type: "update-menu-and-item";
-  menu: Menu;
-  item: MenuItem;
-  seq_id: number;
-};
+export type Action = UpdateItemAction | UpdateMenuAction | UpdateMenuAndItemAction | ExitAction
 
-export type Action =
-  | UpdateItemAction
-  | UpdateMenuAction
-  | UpdateMenuAndItemAction;
-
-export type Conf = {
-  menu: Menu;
-  copyDir?: boolean | string;
-};
-
-const OS = Deno.build.os;
-
-const __dirname = dirname(import.meta);
-console.log(__dirname);
-
-const getTrayBinPath = () => {
-  const binName = {
-    windows: "tray_windows.exe",
-    darwin: "tray_darwin",
-    linux: "tray_linux",
-  }[OS];
-  const binPath = path.join(__dirname, `./traybin/${binName}`);
-  return binPath;
-};
+export interface Conf {
+  menu: Menu
+  debug?: boolean
+  copyDir?: boolean | string
+}
 
 const CHECK_STR = " (√)";
 function updateCheckedInLinux(item: MenuItem) {
-  if (OS !== "linux") {
-    return item;
+  if (Deno.build.os !== 'linux') {
+    return
   }
   if (item.checked) {
-    item.title += CHECK_STR;
+    item.title += CHECK_STR
   } else {
-    item.title = (item.title || "").replace(RegExp(CHECK_STR + "$"), "");
+    item.title = (item.title || '').replace(RegExp(CHECK_STR + '$'), '')
   }
-  return item;
+  if (item.items != null) {
+    item.items.forEach(updateCheckedInLinux)
+  }
+}
+
+async function loadIcon(fileName: string) {
+  const bytes = await Deno.readFile(fileName)
+  return base64Encode(bytes)
+}
+
+async function resolveIcon(item: MenuItem | Menu) {
+  const icon = item.icon
+  if (icon) {
+    try {
+      item.icon = await loadIcon(icon)
+    } catch (_e) {
+      // Image not found
+    }
+  }
+  if (item.items) {
+    await Promise.all(item.items.map(_ => resolveIcon(_)))
+  }
+  return item
+}
+
+function addInternalId(internalIdMap: Map<number, MenuItem>, item: MenuItemEx, counter = {id: 1}) {
+  const id = counter.id++
+  internalIdMap.set(id, item)
+  if (item.items != null) {
+    item.items.forEach(_ => addInternalId(internalIdMap, _, counter))
+  }
+  item.__id = id
+}
+
+function itemTrimmer(item: MenuItem) {
+  return {
+    title: item.title,
+    tooltip: item.tooltip,
+    checked: item.checked,
+    enabled: item.enabled === undefined ? true : item.enabled,
+    hidden: item.hidden,
+    items: item.items,
+    icon: item.icon,
+    isTemplateIcon: item.isTemplateIcon,
+    __id: (item as MenuItemEx).__id
+  }
+}
+
+function menuTrimmer(menu: Menu) {
+  return {
+    icon: menu.icon,
+    title: menu.title,
+    tooltip: menu.tooltip,
+    items: menu.items.map(itemTrimmer),
+    isTemplateIcon: menu.isTemplateIcon
+  }
+}
+
+function actionTrimer(action: Action) {
+  if (action.type === 'update-item') {
+    return {
+      type: action.type,
+      item: itemTrimmer(action.item),
+      seq_id: action.seq_id
+    }
+  } else if (action.type === 'update-menu') {
+    return {
+      type: action.type,
+      menu: menuTrimmer(action.menu)
+    }
+  } else if (action.type === 'update-menu-and-item') {
+    return {
+      type: action.type,
+      item: itemTrimmer(action.item),
+      menu: menuTrimmer(action.menu),
+      seq_id: action.seq_id
+    }
+  } else {
+    return {
+      type: action.type
+    }
+  }
 }
 
 export default class SysTray extends EventEmitter<Record<never, never>> {
+  static separator: MenuItem = {
+    title: '<SEPARATOR>',
+    tooltip: '',
+    enabled: true
+  }
   protected _conf: Conf;
   protected _process: Deno.Process;
-  protected _binPath: string;
+  public get process(): Deno.Process {
+    return this._process
+  }
+  protected _binPath: string
+  private _ready: Promise<void>
+  private internalIdMap = new Map<number, MenuItem>()
 
   constructor(conf: Conf) {
     super();
     this._conf = conf;
-    this._binPath = getTrayBinPath();
-    this._process = Deno.run({
-      cmd: [this._binPath],
-      stdin: "piped",
-      stdout: "piped",
-      stderr: "piped",
-    });
-    conf.menu.items = conf.menu.items.map(updateCheckedInLinux);
-
-    this.onReady(() => {
-      this.writeLine(JSON.stringify(conf.menu));
-    });
+    this._process = null!
+    this._binPath = null!
+    this._ready = this.init()
   }
 
-  onReady(listener: () => void) {
-    const { stdout } = this._process;
-    (async function () {
-      for await (const line of readLines(stdout as Deno.Reader)) {
-        const action: Event = JSON.parse(line);
-        if (action.type === "ready") {
-          listener();
-          debug("onReady", action);
+  private async init() {
+    const conf = this._conf
+    try {
+      this._binPath = await getTrayPath()
+      await Deno.chmod(this._binPath, 755)
+    } catch (_e) {
+      // This API currently throws on Windows
+    }
+
+    try {
+      this._process = Deno.run({
+        cmd: [this._binPath],
+        stdin: "piped",
+        stdout: "piped",
+        stderr: "piped",
+      });
+
+      conf.menu.items.forEach(updateCheckedInLinux)
+      const counter = {id: 1}
+      conf.menu.items.forEach(_ => addInternalId(this.internalIdMap, _ as MenuItemEx, counter))
+      await resolveIcon(conf.menu)
+      this.onReady(() => {
+        this.writeLine(JSON.stringify(menuTrimmer(conf.menu)))
+        Promise.resolve()
+      })
+    } catch (error) {
+      Promise.reject(error)
+    }
+  }
+
+  ready() {
+    return this._ready
+  }
+
+  async onReady(listener: () => void) {
+    for await (const line of readLines(this._process.stdout as Deno.Reader)) {
+      const action: Event = JSON.parse(line);
+      if (action.type === "ready") {
+        listener();
+        if (this._conf.debug) {
+          _debug('onReady', action)
         }
       }
-    })();
+    }
 
     return this;
   }
 
-  onClick(listener: (action: ClickEvent) => void) {
-    const { stdout } = this._process;
-    (async function () {
-      for await (const line of readLines(stdout as Deno.Reader)) {
-        const action: ClickEvent = JSON.parse(line);
-        if (action.type === "clicked") {
-          listener(action);
+  async onClick(listener: (action: ClickEvent) => void) {
+    await this.ready()
+    for await (const line of readLines(this._process.stdout!)) {
+      const action: ClickEvent = JSON.parse(line);
+      if (action.type === "clicked") {
+        const item = this.internalIdMap.get(action.__id)!
+        action.item = Object.assign(item, action.item)
+        if (this._conf.debug) {
+          _debug('onClick', action)
         }
+        listener(action);
       }
-    })();
+    }
     return this;
   }
 
-  writeLine(line: string) {
+  private writeLine(line: string) {
     if (line) {
-      debug("writeLine", line + "\n", "=====");
+      if (this._conf.debug) {
+        _debug('writeLine', line + '\n', '=====')
+      }
       const encoded = new TextEncoder().encode(`${line.trim()}\n`);
       this._process.stdin?.write(encoded);
     }
-
     return this;
   }
 
-  sendAction(action: Action) {
+  async sendAction(action: Action) {
     switch (action.type) {
-      case "update-item":
-        action.item = updateCheckedInLinux(action.item);
-        break;
-      case "update-menu":
-        action.menu.items = action.menu.items.map(updateCheckedInLinux);
-        break;
-      case "update-menu-and-item":
-        action.menu.items = action.menu.items.map(updateCheckedInLinux);
-        action.item = updateCheckedInLinux(action.item);
-        break;
+      case 'update-item':
+        updateCheckedInLinux(action.item)
+        if (action.seq_id == null) {
+          action.seq_id = -1
+        }
+        break
+      case 'update-menu':
+        action.menu = await resolveIcon(action.menu) as Menu
+        action.menu.items.forEach(updateCheckedInLinux)
+        break
+      case 'update-menu-and-item':
+        action.menu = await resolveIcon(action.menu) as Menu
+        action.menu.items.forEach(updateCheckedInLinux)
+        updateCheckedInLinux(action.item)
+        if (action.seq_id == null) {
+          action.seq_id = -1
+        }
+        break
     }
-    debug("sendAction", action);
-    this.writeLine(JSON.stringify(action));
+    if (this._conf.debug) {
+      _debug('sendAction', action)
+    }
+    this.writeLine(JSON.stringify(actionTrimer(action)))
     return this;
   }
 
@@ -188,39 +292,45 @@ export default class SysTray extends EventEmitter<Record<never, never>> {
    * Kill the systray process
    * @param exitNode Exit current node process after systray process is killed, default is true
    */
-  kill(exitNode = true) {
-    if (exitNode) {
-      this.onExit(() => Deno.exit());
+  async kill(exitNode = true) {
+    try {
+      this.onExit(() => {
+        Promise.resolve()
+        if (exitNode) {
+          Deno.exit()
+        }
+      })
+  
+      await this.sendAction({
+        type: 'exit'
+      })
+    } catch (error) {
+      Promise.reject(error)
     }
-
-    this._process.close();
-    this._process.kill("SIGTERM");
   }
 
-  onExit(listener: (code: number | null, signal: string | null) => void) {
-    const { stdout, pid } = this._process;
-    (async function () {
-      for await (const line of readLines(stdout as Deno.Reader)) {
-        if (line === "exit") {
-          listener(pid, "SIGTERM");
-        }
+  async onExit(listener: (code: number | null, signal: string | null) => void) {
+    for await (const line of readLines(this._process.stdout!)) {
+      console.log('exit', line)
+      if (line === "exit") {
+        const status = await this._process.status()
+        const signal = getSignals().find(i => i.number === status.signal)
+        listener(status.code, signal!.name);
       }
-    })();
+    }
   }
 
-  onError(listener: (err: Error) => void) {
-    const _process = this._process;
-    const binPath = this.binPath;
-    (async function () {
-      for await (const line of readLines(_process.stdout as Deno.Reader)) {
-        if (line === "error") {
-          const stderr = await _process.stderrOutput();
-          const decoded = new TextDecoder().decode(stderr);
-          debug("onError", decoded, "binPath", binPath);
-          listener(new Error(decoded));
+  async onError(listener: (err: Error) => void) {
+    for await (const line of readLines(this._process.stdout!)) {
+      if (line === "error") {
+        const stderr = await this._process.stderrOutput();
+        const decoded = new TextDecoder().decode(stderr);
+        if (this._conf.debug) {
+          _debug("onError", decoded, "binPath", this.binPath);
         }
+        listener(new Error(decoded));
       }
-    })();
+    }
   }
 
   get binPath() {

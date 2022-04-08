@@ -10,12 +10,13 @@
   "unlisted": false,
   "files": [
     "./mod.ts",
-    "./traybin/**/*",
+    "./deps.ts",
+    "./utils.ts",
     "./README.md",
     "./LICENSE.md",
     "./deno.json"
   ],
-  "checkFormat": false,
+  "checkFormat": true,
   "checkTests": false,
   "checkInstallation": false,
   "check": true
