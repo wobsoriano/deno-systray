@@ -1,16 +1,16 @@
 {
   "tasks": {
-    "play": "deno run --allow-run --allow-env --allow-read --allow-write --allow-net playground/index.ts",
+    "example": "deno run --allow-run --allow-env --allow-read --allow-write --allow-net example/index.ts",
     "compile": "deno compile  --output compiled --allow-run --allow-env --allow-read --allow-write --allow-net playground/index.ts"
   },
   "lint": {
     "files": {
-      "include": ["mod.ts", "deps.ts", "playground/"]
+      "include": ["mod.ts", "deps.ts", "example/"]
     }
   },
   "fmt": {
     "files": {
-      "include": ["mod.ts", "deps.ts", "playground/"]
+      "include": ["mod.ts", "deps.ts", "example/"]
     },
     "options": {
       "singleQuote": true
