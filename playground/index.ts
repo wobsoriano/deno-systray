@@ -25,17 +25,19 @@ const menu: CustomMenu = {
     checked: true,
     enabled: true,
     click() {
-      menu.items[0].checked = !menu.items[0].checked
-      menu.items[1].checked = !menu.items[0].checked
+      const item1Idx = 0
+      const item2Idx = 1
+      menu.items[item1Idx].checked = !menu.items[item1Idx].checked
+      menu.items[item2Idx].checked = !menu.items[item1Idx].checked
       systray.sendAction({
         type: 'update-item',
-        item: menu.items[0],
-        seq_id: 0
+        item: menu.items[item1Idx],
+        seq_id: item1Idx
       })
       systray.sendAction({
         type: 'update-item',
-        item: menu.items[1],
-        seq_id: 1
+        item: menu.items[item2Idx],
+        seq_id: item2Idx
       })
     }
   }, {
@@ -44,17 +46,19 @@ const menu: CustomMenu = {
     'checked': false,
     'enabled': true,
     click() {
-      menu.items[1].checked = !menu.items[1].checked
-      menu.items[0].checked = !menu.items[1].checked
+      const item1Idx = 0
+      const item2Idx = 1
+      menu.items[item2Idx].checked = !menu.items[item2Idx].checked
+      menu.items[item1Idx].checked = !menu.items[item2Idx].checked
       systray.sendAction({
         type: 'update-item',
-        item: menu.items[0],
-        seq_id: 0
+        item: menu.items[item1Idx],
+        seq_id: item1Idx
       })
       systray.sendAction({
         type: 'update-item',
-        item: menu.items[1],
-        seq_id: 1
+        item: menu.items[item2Idx],
+        seq_id: item2Idx
       })
     }
   }, {
