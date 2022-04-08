@@ -1,0 +1,23 @@
+name: Publish
+
+on:
+  create:
+    ref_type: 'tag'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v2
+
+      - name: Setup Deno
+        uses: maximousblk/setup-deno@v1
+        with:
+          deno-version: 1.20.4
+
+      - name: Publish
+        run: |
+          deno install -Af --unstable https://x.nest.land/eggs@0.3.10/eggs.ts
+          eggs link ${{ secrets.NESTAPIKEY }}
+          eggs publish --yes --no-check --version $(git describe --tags $(git rev-list --tags --max-count=1))
