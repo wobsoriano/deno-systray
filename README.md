@@ -78,8 +78,8 @@ systray.on('ready', (status) => {
   console.log('tray started!');
 });
 
-systray.on('exit', (status) => {
-  console.log(status);
+systray.on('exit', () => {
+  console.log('exited');
 });
 
 systray.on('error', (error) => {
