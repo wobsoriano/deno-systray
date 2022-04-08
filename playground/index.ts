@@ -1,18 +1,13 @@
 import * as path from 'https://deno.land/std@0.134.0/path/mod.ts';
-import SysTray, { MenuItem } from '../mod.ts';
-import menu from '../test/menu.ts';
-
-interface MenuItemClickable extends MenuItem {
-  click?: () => void;
-  items?: MenuItemClickable[];
-}
+import SysTray from '../mod.ts';
+import menu from './menu.ts';
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
 
 const systray = new SysTray({
   menu: {
     ...menu,
-    icon: path.join(__dirname, '../icon.png'),
+    icon: path.join(__dirname, './icon.png'),
     isTemplateIcon: true,
     title: 'Hello',
     tooltip: 'Tips',
@@ -28,9 +23,9 @@ systray.on('click', (action) => {
 });
 
 systray.on('exit', (d) => {
-  console.log(d)
-})
+  console.log(d);
+});
 
 systray.on('error', () => {
-  console.log('error')
-})
+  console.log();
+});

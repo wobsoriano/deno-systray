@@ -2,7 +2,6 @@
   "tasks": {
     "play": "deno run --allow-run --allow-env --allow-read --allow-write --allow-net playground/index.ts",
     "compile": "deno compile  --output compiled --allow-run --allow-env --allow-read --allow-write --allow-net playground/index.ts",
-    "test": "deno test --allow-env --allow-run --allow-read --allow-write test/index.test.ts"
   },
   "lint": {
     "files": {

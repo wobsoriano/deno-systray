@@ -6,11 +6,11 @@ export default {
     'title': 'aa',
     'tooltip': 'bb',
     'checked': true,
-    'enabled': true
+    'enabled': true,
   }, {
     'title': '<SEPARATOR>',
     'tooltip': '',
-    'enabled': true
+    'enabled': true,
   }, {
     'title': 'aa2',
     'tooltip': 'bb',
@@ -20,17 +20,17 @@ export default {
       'title': 'submenu 1',
       'tooltip': 'this is submenu 1',
       'checked': true,
-      'enabled': true
+      'enabled': true,
     }, {
       'title': 'submenu 2',
       'tooltip': 'this is submenu 2',
       'checked': true,
-      'enabled': true
-    }]
+      'enabled': true,
+    }],
   }, {
     'title': 'Exit',
     'tooltip': 'bb',
     'checked': false,
-    'enabled': true
-  }]
-}
+    'enabled': true,
+  }],
+};
