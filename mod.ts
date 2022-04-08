@@ -343,20 +343,16 @@ export default class SysTray extends EventEmitter<Events> {
    * Kill the systray process
    * @param exitNode Exit current node process after systray process is killed, default is true
    */
-  async kill(exitNode = true) {
-    try {
-      this.once('exit', () => {
-        if (exitNode) {
-          Deno.exit();
-        }
-      });
+  kill(exitNode = true) {
+    this.once('exit', () => {
+      if (exitNode) {
+        Deno.exit();
+      }
+    });
 
-      await this.sendAction({
-        type: 'exit',
-      });
-    } catch (error) {
-      throw new Error(error);
-    }
+    this.sendAction({
+      type: 'exit',
+    });
   }
 
   get binPath() {
