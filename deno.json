@@ -1,8 +1,23 @@
 {
   "tasks": {
-    "build": "deno run --allow-env --allow-read --allow-run build.ts",
     "play": "deno run --allow-run --allow-env --allow-read --allow-write --allow-net playground/index.ts",
     "compile": "deno compile  --output compiled --allow-run --allow-env --allow-read --allow-write --allow-net playground/index.ts",
-    "test": "deno test --allow-env --allow-run test/mod.test.ts"
+    "test": "deno test --allow-env --allow-run --allow-read --allow-write test/index.test.ts"
+  },
+  "lint": {
+    "files": {
+      "include": ["mod.ts", "deps.ts", "playground/"]
+    },
+    "rules": {
+      "exclude": ["no-async-promise-executor"]
+    }
+  },
+  "fmt": {
+    "files": {
+      "include": ["mod.ts", "deps.ts", "playground/"]
+    },
+    "options": {
+      "singleQuote": true
+    }
   }
 }

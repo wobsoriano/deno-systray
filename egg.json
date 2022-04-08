@@ -11,7 +11,6 @@
   "files": [
     "./mod.ts",
     "./deps.ts",
-    "./utils.ts",
     "./README.md",
     "./LICENSE.md",
     "./deno.json"
