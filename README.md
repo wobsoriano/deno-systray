@@ -11,7 +11,7 @@ const Item1 = {
   title: 'Item 1',
   tooltip: 'The first item',
   // checked is implemented by plain text in linux
-  checked: false,
+  checked: true,
   enabled: true,
   // click is not a standard property but a custom value
   click: () => {
@@ -28,7 +28,6 @@ const Item2 = {
   tooltip: 'The second item',
   checked: false,
   enabled: true,
-  hidden: false,
   // add a submenu item
   items: [{
     title: 'Submenu',
@@ -71,9 +70,21 @@ const systray = new SysTray({
 
 systray.on('click', (action) => {
   if (action.item.click) {
-    action.item.click()
+    action.item.click();
   }
-})
+});
+
+systray.on('ready', (status) => {
+  console.log('tray started!');
+});
+
+systray.on('exit', (status) => {
+  console.log(status);
+});
+
+systray.on('error', (error) => {
+  console.log(error);
+});
 ```
 
 ## Credits
