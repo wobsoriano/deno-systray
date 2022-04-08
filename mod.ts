@@ -195,9 +195,11 @@ const getTrayPath = async () => {
 };
 
 type Events = {
-  stdout: [string];
-  stderr: [string];
-  end: [Deno.ProcessStatus];
+  data: [string];
+  error: [string];
+  exit: [Deno.ProcessStatus];
+  click: [ClickEvent];
+  ready: [];
 };
 
 export default class SysTray extends EventEmitter<Events> {
@@ -209,7 +211,7 @@ export default class SysTray extends EventEmitter<Events> {
   protected _conf: Conf;
   private _process: Deno.Process;
   public get process(): Deno.Process {
-    return this._process
+    return this._process;
   }
   protected _binPath: string;
   private _ready: Promise<void>;
@@ -228,7 +230,7 @@ export default class SysTray extends EventEmitter<Events> {
     this._ready = this.init();
   }
 
-  async run(...cmd: string[]) {
+  private async run(...cmd: string[]) {
     this._process = Deno.run({
       cmd,
       stdin: 'piped',
@@ -236,13 +238,18 @@ export default class SysTray extends EventEmitter<Events> {
       stdout: 'piped',
     });
     for await (const line of readLines(this._process.stdout!)) {
-      if (line.trim()) this.emit('stdout', line);
+      if (line.trim()) this.emit('data', line);
     }
     for await (const line of readLines(this._process.stderr!)) {
-      if (line.trim()) this.emit('stderr', line);
+      if (line.trim()) {
+        if (this._conf.debug) {
+          log('onError', line, 'binPath', this.binPath);
+        }
+        this.emit('error', line);
+      }
     }
     const status = await this._process.status();
-    this.emit('end', status);
+    this.emit('exit', status);
     this._process.close();
   }
 
@@ -265,8 +272,25 @@ export default class SysTray extends EventEmitter<Events> {
       );
       await resolveIcon(conf.menu);
 
-      this.onReady(() => {
+      this.once('ready', () => {
         this.writeLine(JSON.stringify(menuTrimmer(conf.menu)));
+      });
+
+      this.on('data', (line: string) => {
+        const action: Event = JSON.parse(line);
+        if (action.type === 'clicked') {
+          const item = this.internalIdMap.get(action.__id)!;
+          action.item = Object.assign(item, action.item);
+          if (this._conf.debug) {
+            log('%s, %o', 'onClick', action);
+          }
+          this.emit('click', action);
+        } else if (action.type === 'ready') {
+          if (this._conf.debug) {
+            log('%s %o', 'onReady', action);
+          }
+          this.emit('ready');
+        }
       });
     } catch (error) {
       throw error;
@@ -275,32 +299,6 @@ export default class SysTray extends EventEmitter<Events> {
 
   ready() {
     return this._ready;
-  }
-
-  onReady(listener: () => void) {
-    this.on('stdout', (line) => {
-      const action: Event = JSON.parse(line);
-      if (action.type === 'ready') {
-        listener();
-        if (this._conf.debug) {
-          log('%s %o', 'onReady', action);
-        }
-      }
-    });
-  }
-
-  onClick(listener: (action: ClickEvent) => void) {
-    this.on('stdout', (line) => {
-      const action: ClickEvent = JSON.parse(line);
-      if (action.type === 'clicked') {
-        const item = this.internalIdMap.get(action.__id)!;
-        action.item = Object.assign(item, action.item);
-        if (this._conf.debug) {
-          log('%s, %o', 'onClick', action);
-        }
-        listener(action);
-      }
-    });
   }
 
   private writeLine(line: string) {
@@ -347,7 +345,7 @@ export default class SysTray extends EventEmitter<Events> {
    */
   async kill(exitNode = true) {
     try {
-      this.onExit(() => {
+      this.once('exit', () => {
         if (exitNode) {
           Deno.exit();
         }
@@ -359,19 +357,6 @@ export default class SysTray extends EventEmitter<Events> {
     } catch (error) {
       throw new Error(error);
     }
-  }
-
-  onExit(listener: (status: Deno.ProcessStatus) => void) {
-    this.on('end', listener);
-  }
-
-  onError(listener: (err: Error) => void) {
-    this.on('stderr', (error) => {
-      if (this._conf.debug) {
-        log('onError', error, 'binPath', this.binPath);
-      }
-      listener(new Error(error));
-    });
   }
 
   get binPath() {

@@ -20,9 +20,17 @@ const systray = new SysTray({
   debug: true,
 });
 
-systray.onClick((action) => {
+systray.on('click', (action) => {
   console.log('action', action);
   if (action.seq_id === 5) {
     systray.kill();
   }
 });
+
+systray.on('exit', (d) => {
+  console.log(d)
+})
+
+systray.on('error', () => {
+  console.log('error')
+})
