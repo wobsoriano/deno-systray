@@ -1,6 +1,6 @@
 # deno-systray
 
-SysTray module for Deno using the [go systray library](https://github.com/getlantern/systray).
+A cross-platform systray library for Deno using the [go systray library](https://github.com/getlantern/systray).
 
 ## Usage
 
