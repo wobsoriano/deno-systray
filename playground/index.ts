@@ -1,4 +1,5 @@
 import * as path from 'https://deno.land/std@0.134.0/path/mod.ts';
+import { open } from 'https://deno.land/x/open@v0.0.5/index.ts';
 import SysTray, { Menu, MenuItem } from '../mod.ts';
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
@@ -61,8 +62,15 @@ const menu: CustomMenu = {
     'tooltip': '',
     'enabled': true,
   }, {
-    'title': 'aa2',
-    'tooltip': 'bb',
+    title: 'GitHub',
+    tooltip: 'Go to repository',
+    checked: false,
+    click() {
+      open('https://github.com/wobsoriano/deno-systray')
+    }
+  }, {
+    'title': 'Item with submenu',
+    'tooltip': 'submenu',
     'checked': false,
     'enabled': true,
     'items': [{
