@@ -12,7 +12,7 @@
     "./mod.ts",
     "./deps.ts",
     "./README.md",
-    "./LICENSE.md",
+    "./LICENSE",
     "./deno.json"
   ],
   "checkFormat": true,
