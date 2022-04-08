@@ -3,11 +3,13 @@ import { open } from 'https://deno.land/x/open@v0.0.5/index.ts';
 import SysTray, { Menu, MenuItem } from '../mod.ts';
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
-const icon = Deno.build.os === 'windows' ? path.join(__dirname, './icon.ico') :  path.join(__dirname, './icon.png');
+const icon = Deno.build.os === 'windows'
+  ? path.join(__dirname, './icon.ico')
+  : path.join(__dirname, './icon.png');
 
 interface MenuItemClickable extends MenuItem {
-	click?: () => void;
-	items?: MenuItemClickable[];
+  click?: () => void;
+  items?: MenuItemClickable[];
 }
 
 interface CustomMenu extends Menu {
@@ -25,53 +27,49 @@ const menu: CustomMenu = {
     checked: true,
     enabled: true,
     click() {
-      const item1Idx = 0
-      const item2Idx = 1
-      menu.items[item1Idx].checked = !menu.items[item1Idx].checked
-      menu.items[item2Idx].checked = !menu.items[item1Idx].checked
+      const item1Idx = 0;
+      const item2Idx = 1;
+      menu.items[item1Idx].checked = !menu.items[item1Idx].checked;
+      menu.items[item2Idx].checked = !menu.items[item1Idx].checked;
       systray.sendAction({
         type: 'update-item',
         item: menu.items[item1Idx],
-        seq_id: item1Idx
-      })
+        seq_id: item1Idx,
+      });
       systray.sendAction({
         type: 'update-item',
         item: menu.items[item2Idx],
-        seq_id: item2Idx
-      })
-    }
+        seq_id: item2Idx,
+      });
+    },
   }, {
     'title': 'Item 2',
     'tooltip': 'the second item',
     'checked': false,
     'enabled': true,
     click() {
-      const item1Idx = 0
-      const item2Idx = 1
-      menu.items[item2Idx].checked = !menu.items[item2Idx].checked
-      menu.items[item1Idx].checked = !menu.items[item2Idx].checked
+      const item1Idx = 0;
+      const item2Idx = 1;
+      menu.items[item2Idx].checked = !menu.items[item2Idx].checked;
+      menu.items[item1Idx].checked = !menu.items[item2Idx].checked;
       systray.sendAction({
         type: 'update-item',
         item: menu.items[item1Idx],
-        seq_id: item1Idx
-      })
+        seq_id: item1Idx,
+      });
       systray.sendAction({
         type: 'update-item',
         item: menu.items[item2Idx],
-        seq_id: item2Idx
-      })
-    }
-  }, {
-    'title': '<SEPARATOR>',
-    'tooltip': '',
-    'enabled': true,
-  }, {
+        seq_id: item2Idx,
+      });
+    },
+  }, SysTray.separator, {
     title: 'GitHub',
     tooltip: 'Go to repository',
     checked: false,
     click() {
-      open('https://github.com/wobsoriano/deno-systray')
-    }
+      open('https://github.com/wobsoriano/deno-systray');
+    },
   }, {
     'title': 'Item with submenu',
     'tooltip': 'submenu',
@@ -94,8 +92,8 @@ const menu: CustomMenu = {
     checked: false,
     enabled: true,
     click() {
-      systray.kill()
-    }
+      systray.kill();
+    },
   }],
 };
 
@@ -106,7 +104,7 @@ const systray = new SysTray({
 
 systray.on('click', (action) => {
   if ((action.item as MenuItemClickable).click) {
-    (action.item as MenuItemClickable).click!()
+    (action.item as MenuItemClickable).click!();
   }
 });
 
