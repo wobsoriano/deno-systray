@@ -60,6 +60,7 @@ systray.onClick((action) => {
 
 - https://github.com/getlantern/systray
 - https://github.com/zaaack/systray-portable
+- https://github.com/felixhao28/node-systray
 
 ## License
 
