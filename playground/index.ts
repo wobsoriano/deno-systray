@@ -3,12 +3,13 @@ import SysTray from '../mod.ts';
 import menu from './menu.ts';
 
 const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
+const icon = Deno.build.os === 'windows' ? path.join(__dirname, './icon.ico') :  path.join(__dirname, './icon.png');
 
 const systray = new SysTray({
   menu: {
     ...menu,
-    icon: path.join(__dirname, './icon.png'),
-    isTemplateIcon: true,
+    icon,
+    isTemplateIcon: Deno.build.os === 'darwin',
     title: 'Hello',
     tooltip: 'Tips',
   },
