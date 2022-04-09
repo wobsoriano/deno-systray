@@ -14,9 +14,9 @@ jobs:
       - name: Setup Deno
         uses: maximousblk/setup-deno@v1
         with:
-          deno-version: 1.20.4
+          deno-version: 1.20.x
 
-      - name: Publish
+      - name: Deploy to nest.land
         run: |
           deno install -Af --unstable https://x.nest.land/eggs@0.3.10/eggs.ts
           eggs link ${{ secrets.NESTAPIKEY }}

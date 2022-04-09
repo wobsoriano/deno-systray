@@ -1,0 +1,15 @@
+Arguments:
+  version
+
+Deno version:
+  deno: 1.20.4
+  v8: 10.0.139.6
+  typescript: 4.6.2
+
+Eggs version:
+  0.3.10
+
+Platform:
+  aarch64-apple-darwin
+
+2022-04-09T00:10:11.740Z [CRITICAL] An unexpected error occurred: "Unknown command "version". Did you mean command "help"?" 'Error: Unknown command "version". Did you mean command "help"?\n    at Command.parseArguments (https://arweave.net/b4K9toBc51LZoKzXnXVFaz9TZaQKTIWPCl45yxgU8sc/command/command.ts:1159:17)\n    at Command.parse (https://arweave.net/b4K9toBc51LZoKzXnXVFaz9TZaQKTIWPCl45yxgU8sc/command/command.ts:911:29)\n    at async https://arweave.net/t73xsFyqdCTu0FVEzt_psO9MbOFNaOV_rVmfjJoDCs0/eggs.ts:74:23'
