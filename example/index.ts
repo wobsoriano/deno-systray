@@ -2,25 +2,10 @@ import * as path from 'https://deno.land/std@0.134.0/path/mod.ts';
 import { open } from 'https://deno.land/x/open@v0.0.5/index.ts';
 import SysTray, { Menu, MenuItem } from '../mod.ts';
 
-// const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
-function makeloc(meta: any) {
-  const 
-    iURL = typeof meta === 'string' ? meta : meta.url,
-    fileStartRegex = /(^(file:)((\/\/)?))/,
-    __dirname = path.join(iURL, '../')
-                  .replace(fileStartRegex, '')
-                  .replace(/(\/$)/, ''),
-    __filename = iURL.replace(fileStartRegex, '')
-
-  return { __dirname, __filename }
-}
-
-const {__dirname} = makeloc(import.meta);
+const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
 const icon = Deno.build.os === 'windows'
   ? path.join(__dirname, './icon.ico')
   : path.join(__dirname, './icon.png');
-
-  console.log(icon)
 
 interface MenuItemClickable extends MenuItem {
   click?: () => void;
