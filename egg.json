@@ -4,10 +4,8 @@
   "entry": "./mod.ts",
   "description": "A cross-platform systray library for Deno.",
   "homepage": "https://github.com/wobsoriano/deno-systray",
-  "version": "0.1.6",
-  "releaseType": "patch",
-  "unstable": false,
-  "unlisted": false,
+  "unstable": true,
+  "unlisted": true,
   "files": [
     "./mod.ts",
     "./deps.ts",
