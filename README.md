@@ -1,6 +1,9 @@
 # deno-systray
 
-[![nest.land](https://nest.land/badge.svg)](https://nest.land/package/systray) [![Tags](https://img.shields.io/github/release/wobsoriano/deno-systray)](https://github.com/wobsoriano/deno-systray/releases) [![License](https://img.shields.io/github/license/wobsoriano/deno-systray)](https://github.com/wobsoriano/deno-systray/blob/master/LICENSE)
+[![nest.land](https://nest.land/badge.svg)](https://nest.land/package/systray)
+[![CI Status](https://img.shields.io/github/workflow/status/wobsoriano/deno-systray/check)](https://github.com/wobsoriano/deno-systray/actions)
+[![Tags](https://img.shields.io/github/release/wobsoriano/deno-systray)](https://github.com/wobsoriano/deno-systray/releases)
+[![License](https://img.shields.io/github/license/wobsoriano/deno-systray)](https://github.com/wobsoriano/deno-systray/blob/master/LICENSE)
 
 A cross-platform systray library for Deno using the [go systray library](https://github.com/getlantern/systray).
 
