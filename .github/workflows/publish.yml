@@ -19,6 +19,5 @@ jobs:
       - name: Deploy to nest.land
         run: |
           deno install -Af --unstable https://x.nest.land/eggs@0.3.10/eggs.ts
-          deno fmt
           eggs link ${{ secrets.NESTAPIKEY }}
-          eggs publish systray -Y --version $(git describe --tags $(git rev-list --tags --max-count=1))
+          eggs publish systray -Y --version $(git describe --tags $(git rev-list --tags --max-count=1)) --check-format "false" --check-tests "false"
