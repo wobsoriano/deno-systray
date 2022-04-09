@@ -7,7 +7,7 @@
 
 A cross-platform systray library for Deno using the [go systray library](https://github.com/getlantern/systray).
 
-<img src="sample.png" width="82">
+<img src="sample.png" />
 
 ## Usage
 
