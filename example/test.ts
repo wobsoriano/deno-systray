@@ -6,5 +6,5 @@ import * as path from 'https://deno.land/std@0.134.0/path/mod.ts';
 
 // console.log(__dirname)
 
-const filePath = path.fromFileUrl(new URL("icon.png", import.meta.url));
+const filePath = path.fromFileUrl(new URL("icon.png", Deno.cwd()));
 console.log(filePath)
