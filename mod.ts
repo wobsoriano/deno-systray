@@ -2,6 +2,7 @@ import {
   base64Encode,
   debug,
   downloadAndCache,
+  configureCache,
   EventEmitter,
   readLines,
   withoutEnv,
@@ -82,6 +83,7 @@ export type Action =
 export interface Conf {
   menu: Menu;
   debug?: boolean;
+  directory?: string | undefined;
 }
 
 const CHECK_STR = ' (√)';
@@ -188,7 +190,6 @@ const getTrayPath = async () => {
     darwin: `${url}/tray_darwin`,
     linux: `${url}/tray_linux`,
   })[Deno.build.os];
-
   const file = await downloadAndCache(binName);
 
   return file.path;
@@ -225,6 +226,12 @@ export default class SysTray extends EventEmitter<Events> {
 
     if (this._conf.debug) {
       withoutEnv(debugName);
+    }
+
+    if (this._conf.directory) {
+      configureCache({
+        directory: this._conf.directory
+      })
     }
 
     this._ready = this.init();

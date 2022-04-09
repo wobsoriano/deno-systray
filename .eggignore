@@ -3,3 +3,4 @@
 .vscode/**
 benchmarks/**
 eggs-debug.log
+bin

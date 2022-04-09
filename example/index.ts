@@ -100,6 +100,7 @@ const menu: CustomMenu = {
 const systray = new SysTray({
   menu,
   debug: true,
+  directory: 'bin'
 });
 
 systray.on('click', (action) => {
