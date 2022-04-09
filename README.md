@@ -73,6 +73,8 @@ const systray = new SysTray({
       ItemExit
     ],
   },
+  debug: true, // log actions
+  directory: 'bin' // cache directory of binary package
 });
 
 systray.on('click', (action) => {
