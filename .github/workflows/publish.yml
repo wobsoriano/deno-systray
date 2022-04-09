@@ -12,12 +12,12 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Setup Deno
-        uses: denoland/setup-deno@main
+        uses: maximousblk/setup-deno@v1
         with:
           deno-version: v1.20.x
 
       - name: Deploy to nest.land
         run: |
-          deno install -A --unstable https://x.nest.land/eggs@0.3.10/eggs.ts
+          deno install -Af --unstable https://x.nest.land/eggs@0.3.10/eggs.ts
           eggs link ${{ secrets.NESTAPIKEY }}
-          eggs publish --version $(git describe --tags $(git rev-list --tags --max-count=1))
+          eggs publish --yes --no-check --version $(git describe --tags $(git rev-list --tags --max-count=1))

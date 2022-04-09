@@ -14,8 +14,7 @@
     "./LICENSE",
     "./deno.json"
   ],
-  "checkFormat": "deno fmt",
+  "checkFormat": true,
   "checkTests": false,
-  "checkInstallation": true,
-  "check": false
+  "checkInstallation": true
 }
