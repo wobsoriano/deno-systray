@@ -7,10 +7,6 @@ const icon = Deno.build.os === 'windows'
   ? path.join(__dirname, './icon.ico')
   : path.join(__dirname, './icon.png');
 
-console.log('icon location', icon)
-console.log(Deno.mainModule)
-console.log(import.meta.main)
-
 interface MenuItemClickable extends MenuItem {
   click?: () => void;
   items?: MenuItemClickable[];
