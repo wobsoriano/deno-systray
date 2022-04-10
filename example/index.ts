@@ -1,11 +1,14 @@
-import * as path from 'https://deno.land/std@0.134.0/path/mod.ts';
 import { open } from 'https://deno.land/x/open@v0.0.5/index.ts';
+import { downloadAndCache } from '../deps.ts'
 import SysTray, { Menu, MenuItem } from '../mod.ts';
 
-const __dirname = path.dirname(path.fromFileUrl(import.meta.url));
-const icon = Deno.build.os === 'windows'
-  ? path.join(__dirname, './icon.ico')
-  : path.join(__dirname, './icon.png');
+const iconUrl = 'https://raw.githubusercontent.com/wobsoriano/deno-systray/master/example'
+const iconName = ({
+  windows: `${iconUrl}/icon.ico`,
+  darwin: `${iconUrl}/icon.png`,
+  linux: `${iconUrl}/icon.png`,
+})[Deno.build.os];
+const icon = (await downloadAndCache(iconName)).path;
 
 interface MenuItemClickable extends MenuItem {
   click?: () => void;
