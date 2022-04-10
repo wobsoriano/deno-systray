@@ -99,7 +99,7 @@ systray.on('error', (error) => {
 ## Try the example app!
 
 ```bash
-$ deno run https://deno.land/x/systray@v0.2.2/example/index.ts
+$ deno run https://deno.land/x/systray/example/index.ts
 ```
 
 View [platform notes](https://github.com/getlantern/systray#platform-notes).
