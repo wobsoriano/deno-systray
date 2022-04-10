@@ -10,8 +10,6 @@ const iconName = ({
 })[Deno.build.os];
 const icon = (await downloadAndCache(iconName)).path;
 
-console.log(icon)
-
 interface MenuItemClickable extends MenuItem {
   click?: () => void;
   items?: MenuItemClickable[];
