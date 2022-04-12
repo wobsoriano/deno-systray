@@ -83,7 +83,7 @@ systray.on('click', (action) => {
   }
 });
 
-systray.on('ready', (status) => {
+systray.on('ready', () => {
   console.log('tray started!');
 });
 
