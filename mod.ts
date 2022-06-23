@@ -8,7 +8,7 @@ import {
   withoutEnv,
 } from './deps.ts';
 
-const version = Deno.env.get('TRAY_VERSION') ?? 'v0.1.1';
+const version = Deno.env.get('TRAY_VERSION') ?? 'v0.1.2';
 const url = Deno.env.get('TRAY_URL') ??
   `https://github.com/wobsoriano/systray-portable/releases/download/${version}`;
 
