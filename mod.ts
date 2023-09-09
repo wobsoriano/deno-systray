@@ -264,7 +264,7 @@ export default class SysTray extends EventEmitter<Events> {
     const conf = this._conf;
     try {
       this._binPath = await getTrayPath();
-      await Deno.chmod(this._binPath, 755);
+      await Deno.chmod(this._binPath, 0o755);
     } catch (_error) {
       // This API currently throws on Windows
     }
