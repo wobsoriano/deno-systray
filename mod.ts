@@ -4,8 +4,9 @@ import {
   downloadAndCache,
   configureCache,
   EventEmitter,
-  readLines,
   withoutEnv,
+  TextLineStream,
+  readLines,
 } from './deps.ts';
 
 const version = Deno.env.get('TRAY_VERSION') ?? 'v0.1.2';
@@ -185,11 +186,22 @@ function actionTrimer(action: Action) {
 }
 
 const getTrayPath = async () => {
-  const binName = ({
-    windows: `${url}/tray_windows.exe`,
-    darwin: `${url}/tray_darwin`,
-    linux: `${url}/tray_linux`,
-  })[Deno.build.os];
+  let binName;
+  switch (Deno.build.os) {
+    case 'windows':
+      binName = `${url}/tray_windows.exe`;
+      break;
+    case 'darwin':
+      binName = `${url}/tray_darwin`;
+      break;
+    case 'linux':
+      binName = `${url}/tray_linux`;
+      break;
+    default:
+      // Handle unsupported OS here
+      binName = '';
+      break;
+  }
   const file = await downloadAndCache(binName);
 
   return file.path;
@@ -198,7 +210,7 @@ const getTrayPath = async () => {
 type Events = {
   data: [string];
   error: [string];
-  exit: [Deno.ProcessStatus];
+  exit: [Deno.CommandStatus];
   click: [ClickEvent];
   ready: [];
 };
@@ -210,9 +222,9 @@ export default class SysTray extends EventEmitter<Events> {
     enabled: true,
   };
   protected _conf: Conf;
-  private _process: Deno.Process;
-  public get process(): Deno.Process {
-    return this._process;
+  private _command: Deno.Command;
+  public get process(): Deno.Command {
+    return this._command;
   }
   protected _binPath: string;
   private _ready: Promise<void>;
@@ -221,7 +233,7 @@ export default class SysTray extends EventEmitter<Events> {
   constructor(conf: Conf) {
     super();
     this._conf = conf;
-    this._process = null!;
+    this._command = null!;
     this._binPath = null!;
 
     if (this._conf.debug) {
@@ -238,16 +250,25 @@ export default class SysTray extends EventEmitter<Events> {
   }
 
   private async run(...cmd: string[]) {
-    this._process = Deno.run({
-      cmd,
+    const [mainCmd, ...args] = cmd
+    this._command = new Deno.Command(mainCmd, {
+      args,
       stdin: 'piped',
       stderr: 'piped',
       stdout: 'piped',
-    });
-    for await (const line of readLines(this._process.stdout!)) {
-      if (line.trim()) this.emit('data', line);
+    })
+
+    const child_command = this._command.spawn();
+
+    const stdout = child_command.stdout.pipeThrough(new TextDecoderStream()).pipeThrough(new TextLineStream())
+    const stderr = child_command.stderr.pipeThrough(new TextDecoderStream()).pipeThrough(new TextLineStream())
+    for await (const line of stdout) {
+      if (line.trim()) {
+        this.emit('data', line);
+      }
     }
-    for await (const line of readLines(this._process.stderr!)) {
+
+    for await (const line of stderr) {
       if (line.trim()) {
         if (this._conf.debug) {
           log('onError', line, 'binPath', this.binPath);
@@ -255,9 +276,10 @@ export default class SysTray extends EventEmitter<Events> {
         this.emit('error', line);
       }
     }
-    const status = await this._process.status();
+
+    const status = await child_command.status;
     this.emit('exit', status);
-    this._process.close();
+    await child_command.stdin.close();
   }
 
   private async init() {
@@ -308,17 +330,21 @@ export default class SysTray extends EventEmitter<Events> {
     return this._ready;
   }
 
-  private writeLine(line: string) {
+  private async writeLine(line: string) {
     if (line) {
       if (this._conf.debug) {
         log('%s %o', 'writeLine', line + '\n', '=====');
       }
+      const process = this._command.spawn();
       const encoded = new TextEncoder().encode(`${line.trim()}\n`);
-      this._process.stdin!.write(encoded);
+      const writer = await process.stdin.getWriter();
+      await writer.write(encoded)
+      writer.releaseLock()
     }
   }
 
   async sendAction(action: Action) {
+    console.log('SENDING ACTION', action)
     switch (action.type) {
       case 'update-item':
         updateCheckedInLinux(action.item);

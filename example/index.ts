@@ -3,11 +3,19 @@ import { downloadAndCache } from '../deps.ts'
 import SysTray, { Menu, MenuItem } from '../mod.ts';
 
 const iconUrl = 'https://raw.githubusercontent.com/wobsoriano/deno-systray/master/example'
-const iconName = ({
-  windows: `${iconUrl}/icon.ico`,
-  darwin: `${iconUrl}/icon.png`,
-  linux: `${iconUrl}/icon.png`,
-})[Deno.build.os];
+
+let iconName = `${iconUrl}/icon.png`;
+
+switch (Deno.build.os) {
+  case 'windows':
+    iconName = `${iconUrl}/icon.ico`;
+    break;
+  case 'darwin':
+  case 'linux':
+    iconName = `${iconUrl}/icon.png`;
+    break;
+}
+
 const icon = (await downloadAndCache(iconName)).path;
 
 interface MenuItemClickable extends MenuItem {
@@ -30,6 +38,7 @@ const menu: CustomMenu = {
     checked: true,
     enabled: true,
     click() {
+      console.log('clicked')
       const item1Idx = 0;
       const item2Idx = 1;
       menu.items[item1Idx].checked = !menu.items[item1Idx].checked;
