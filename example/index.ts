@@ -2,14 +2,31 @@ import { open } from 'https://deno.land/x/open@v0.0.5/index.ts';
 import { downloadAndCache } from '../deps.ts';
 import SysTray, { Menu, MenuItem } from '../mod.ts';
 
-const iconUrl =
-  'https://raw.githubusercontent.com/wobsoriano/deno-systray/master/example';
-const iconName = ({
-  windows: `${iconUrl}/icon.ico`,
-  darwin: `${iconUrl}/icon.png`,
-  linux: `${iconUrl}/icon.png`,
-})[Deno.build.os];
-const icon = (await downloadAndCache(iconName)).path;
+async function getIconUrl() {
+  const { os } = Deno.build;
+  const iconUrl =
+    'https://raw.githubusercontent.com/wobsoriano/deno-systray/master/example';
+
+  let iconName;
+
+  switch (os) {
+    case 'windows':
+      iconName = `${iconUrl}/icon.ico`;
+      break;
+    case 'darwin':
+    case 'linux':
+      iconName = `${iconUrl}/icon.png`;
+      break;
+    default:
+      throw new Error(`Unsupported operating system: ${os}`);
+  }
+
+  const icon = (await downloadAndCache(iconName)).path;
+
+  return icon;
+}
+
+const icon = await getIconUrl();
 
 interface MenuItemClickable extends MenuItem {
   click?: () => void;
