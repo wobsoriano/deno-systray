@@ -1,8 +1,9 @@
 import { open } from 'https://deno.land/x/open@v0.0.5/index.ts';
-import { downloadAndCache } from '../deps.ts'
+import { downloadAndCache } from '../deps.ts';
 import SysTray, { Menu, MenuItem } from '../mod.ts';
 
-const iconUrl = 'https://raw.githubusercontent.com/wobsoriano/deno-systray/master/example'
+const iconUrl =
+  'https://raw.githubusercontent.com/wobsoriano/deno-systray/master/example';
 const iconName = ({
   windows: `${iconUrl}/icon.ico`,
   darwin: `${iconUrl}/icon.png`,
@@ -24,86 +25,93 @@ const menu: CustomMenu = {
   isTemplateIcon: Deno.build.os === 'darwin',
   title: 'Title',
   tooltip: 'Tooltip',
-  items: [{
-    title: 'Item 1',
-    tooltip: 'the first item',
-    checked: true,
-    enabled: true,
-    click() {
-      const item1Idx = 0;
-      const item2Idx = 1;
-      menu.items[item1Idx].checked = !menu.items[item1Idx].checked;
-      menu.items[item2Idx].checked = !menu.items[item1Idx].checked;
-      systray.sendAction({
-        type: 'update-item',
-        item: menu.items[item1Idx],
-        seq_id: item1Idx,
-      });
-      systray.sendAction({
-        type: 'update-item',
-        item: menu.items[item2Idx],
-        seq_id: item2Idx,
-      });
+  items: [
+    {
+      title: 'Item 1',
+      tooltip: 'the first item',
+      checked: true,
+      enabled: true,
+      click() {
+        const item1Idx = 0;
+        const item2Idx = 1;
+        menu.items[item1Idx].checked = !menu.items[item1Idx].checked;
+        menu.items[item2Idx].checked = !menu.items[item1Idx].checked;
+        systray.sendAction({
+          type: 'update-item',
+          item: menu.items[item1Idx],
+          seq_id: item1Idx,
+        });
+        systray.sendAction({
+          type: 'update-item',
+          item: menu.items[item2Idx],
+          seq_id: item2Idx,
+        });
+      },
     },
-  }, {
-    'title': 'Item 2',
-    'tooltip': 'the second item',
-    'checked': false,
-    'enabled': true,
-    click() {
-      const item1Idx = 0;
-      const item2Idx = 1;
-      menu.items[item2Idx].checked = !menu.items[item2Idx].checked;
-      menu.items[item1Idx].checked = !menu.items[item2Idx].checked;
-      systray.sendAction({
-        type: 'update-item',
-        item: menu.items[item1Idx],
-        seq_id: item1Idx,
-      });
-      systray.sendAction({
-        type: 'update-item',
-        item: menu.items[item2Idx],
-        seq_id: item2Idx,
-      });
-    },
-  }, SysTray.separator, {
-    title: 'GitHub',
-    tooltip: 'Go to repository',
-    checked: false,
-    click() {
-      open('https://github.com/wobsoriano/deno-systray');
-    },
-  }, {
-    'title': 'Item with submenu',
-    'tooltip': 'submenu',
-    'checked': false,
-    'enabled': true,
-    'items': [{
-      'title': 'submenu 1',
-      'tooltip': 'this is submenu 1',
-      'checked': true,
+    {
+      'title': 'Item 2',
+      'tooltip': 'the second item',
+      'checked': false,
       'enabled': true,
-    }, {
-      'title': 'submenu 2',
-      'tooltip': 'this is submenu 2',
-      'checked': true,
-      'enabled': true,
-    }],
-  }, {
-    title: 'Exit',
-    tooltip: 'Exit the tray menu',
-    checked: false,
-    enabled: true,
-    click() {
-      systray.kill();
+      click() {
+        const item1Idx = 0;
+        const item2Idx = 1;
+        menu.items[item2Idx].checked = !menu.items[item2Idx].checked;
+        menu.items[item1Idx].checked = !menu.items[item2Idx].checked;
+        systray.sendAction({
+          type: 'update-item',
+          item: menu.items[item1Idx],
+          seq_id: item1Idx,
+        });
+        systray.sendAction({
+          type: 'update-item',
+          item: menu.items[item2Idx],
+          seq_id: item2Idx,
+        });
+      },
     },
-  }],
+    SysTray.separator,
+    {
+      title: 'GitHub',
+      tooltip: 'Go to repository',
+      checked: false,
+      click() {
+        open('https://github.com/wobsoriano/deno-systray');
+      },
+    },
+    {
+      'title': 'Item with submenu',
+      'tooltip': 'submenu',
+      'checked': false,
+      'enabled': true,
+      'items': [{
+        'title': 'submenu 1',
+        'tooltip': 'this is submenu 1',
+        'checked': true,
+        'enabled': true,
+      }, {
+        'title': 'submenu 2',
+        'tooltip': 'this is submenu 2',
+        'checked': true,
+        'enabled': true,
+      }],
+    },
+    {
+      title: 'Exit',
+      tooltip: 'Exit the tray menu',
+      checked: false,
+      enabled: true,
+      click() {
+        systray.kill();
+      },
+    },
+  ],
 };
 
 const systray = new SysTray({
   menu,
   debug: true,
-  directory: 'bin'
+  directory: 'bin',
 });
 
 systray.on('click', (action) => {

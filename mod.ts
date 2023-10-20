@@ -1,14 +1,14 @@
 import {
   base64Encode,
+  configureCache,
   debug,
   downloadAndCache,
-  configureCache,
   EventEmitter,
   readLines,
   withoutEnv,
 } from './deps.ts';
 
-const version = Deno.env.get('TRAY_VERSION') ?? 'v0.1.2';
+const version = Deno.env.get('TRAY_VERSION') ?? 'v0.2.0';
 const url = Deno.env.get('TRAY_URL') ??
   `https://github.com/wobsoriano/systray-portable/releases/download/${version}`;
 
@@ -185,13 +185,30 @@ function actionTrimer(action: Action) {
 }
 
 const getTrayPath = async () => {
-  const binName = ({
-    windows: `${url}/tray_windows.exe`,
-    darwin: `${url}/tray_darwin`,
-    linux: `${url}/tray_linux`,
-  })[Deno.build.os];
-  const file = await downloadAndCache(binName);
+  let binName: string;
+  const { arch, os } = Deno.build;
 
+  switch (os) {
+    case 'windows':
+      binName = arch === 'x86_64'
+        ? `${url}/tray_windows_amd64.exe`
+        : `${url}/tray_windows_386.exe`;
+      break;
+    case 'darwin':
+      binName = arch === 'x86_64'
+        ? `${url}/tray_darwin_amd64`
+        : `${url}/tray_darwin_arm64`;
+      break;
+    case 'linux':
+      binName = arch === 'x86_64'
+        ? `${url}/tray_linux_arm64`
+        : `${url}/tray_linux_amd64`;
+      break;
+    default:
+      throw new Error('Unsupported OS for tray application');
+  }
+
+  const file = await downloadAndCache(binName);
   return file.path;
 };
 
@@ -230,8 +247,8 @@ export default class SysTray extends EventEmitter<Events> {
 
     if (this._conf.directory) {
       configureCache({
-        directory: this._conf.directory
-      })
+        directory: this._conf.directory,
+      });
     }
 
     this._ready = this.init();
