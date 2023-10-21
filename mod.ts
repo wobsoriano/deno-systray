@@ -4,9 +4,9 @@ import {
   debug,
   downloadAndCache,
   EventEmitter,
-  withoutEnv,
-  TextLineStream,
   readLines,
+  TextLineStream,
+  withoutEnv,
 } from './deps.ts';
 
 const version = Deno.env.get('TRAY_VERSION') ?? 'v0.2.0';
@@ -256,18 +256,21 @@ export default class SysTray extends EventEmitter<Events> {
   }
 
   private async run(...cmd: string[]) {
-    const [mainCmd, ...args] = cmd
+    const [mainCmd, ...args] = cmd;
     this._command = new Deno.Command(mainCmd, {
       args,
       stdin: 'piped',
       stderr: 'piped',
       stdout: 'piped',
-    })
+    });
 
     const child_command = this._command.spawn();
 
-    const stdout = child_command.stdout.pipeThrough(new TextDecoderStream()).pipeThrough(new TextLineStream())
-    const stderr = child_command.stderr.pipeThrough(new TextDecoderStream()).pipeThrough(new TextLineStream())
+    const stdout = child_command.stdout.pipeThrough(new TextDecoderStream())
+      .pipeThrough(new TextLineStream());
+    const stderr = child_command.stderr.pipeThrough(new TextDecoderStream())
+      .pipeThrough(new TextLineStream());
+
     for await (const line of stdout) {
       if (line.trim()) {
         this.emit('data', line);
@@ -302,9 +305,9 @@ export default class SysTray extends EventEmitter<Events> {
 
       conf.menu.items.forEach(updateCheckedInLinux);
       const counter = { id: 1 };
-      conf.menu.items.forEach((_) =>
-        addInternalId(this.internalIdMap, _ as MenuItemEx, counter)
-      );
+      conf.menu.items.forEach((_) => {
+        addInternalId(this.internalIdMap, _ as MenuItemEx, counter);
+      });
       await resolveIcon(conf.menu);
 
       this.once('ready', () => {
@@ -312,6 +315,7 @@ export default class SysTray extends EventEmitter<Events> {
       });
 
       this.on('data', (line: string) => {
+        console.log(line);
         const action: Event = JSON.parse(line);
         if (action.type === 'clicked') {
           const item = this.internalIdMap.get(action.__id)!;
@@ -344,13 +348,13 @@ export default class SysTray extends EventEmitter<Events> {
       const process = this._command.spawn();
       const encoded = new TextEncoder().encode(`${line.trim()}\n`);
       const writer = await process.stdin.getWriter();
-      await writer.write(encoded)
-      writer.releaseLock()
+      await writer.write(encoded);
+      writer.releaseLock();
     }
   }
 
   async sendAction(action: Action) {
-    console.log('SENDING ACTION', action)
+    console.log('SENDING ACTION', action);
     switch (action.type) {
       case 'update-item':
         updateCheckedInLinux(action.item);
