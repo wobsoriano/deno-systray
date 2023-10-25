@@ -4,7 +4,6 @@ import {
   debug,
   downloadAndCache,
   EventEmitter,
-  readLines,
   TextLineStream,
   withoutEnv,
 } from './deps.ts';
@@ -229,6 +228,7 @@ export default class SysTray extends EventEmitter<Events> {
   };
   protected _conf: Conf;
   private _command: Deno.Command;
+  private _systrayChildProcess: Deno.ChildProcess | null;
   public get process(): Deno.Command {
     return this._command;
   }
@@ -241,6 +241,7 @@ export default class SysTray extends EventEmitter<Events> {
     this._conf = conf;
     this._command = null!;
     this._binPath = null!;
+    this._systrayChildProcess = null;
 
     if (this._conf.debug) {
       withoutEnv(debugName);
@@ -264,11 +265,13 @@ export default class SysTray extends EventEmitter<Events> {
       stdout: 'piped',
     });
 
-    const child_command = this._command.spawn();
+    this._systrayChildProcess = this._command.spawn();
 
-    const stdout = child_command.stdout.pipeThrough(new TextDecoderStream())
+    const stdout = this._systrayChildProcess.stdout
+      .pipeThrough(new TextDecoderStream())
       .pipeThrough(new TextLineStream());
-    const stderr = child_command.stderr.pipeThrough(new TextDecoderStream())
+    const stderr = this._systrayChildProcess.stderr
+      .pipeThrough(new TextDecoderStream())
       .pipeThrough(new TextLineStream());
 
     for await (const line of stdout) {
@@ -286,9 +289,9 @@ export default class SysTray extends EventEmitter<Events> {
       }
     }
 
-    const status = await child_command.status;
+    const status = await this._systrayChildProcess.status;
     this.emit('exit', status);
-    await child_command.stdin.close();
+    await this._systrayChildProcess.stdin.close();
   }
 
   private async init() {
@@ -315,7 +318,6 @@ export default class SysTray extends EventEmitter<Events> {
       });
 
       this.on('data', (line: string) => {
-        console.log(line);
         const action: Event = JSON.parse(line);
         if (action.type === 'clicked') {
           const item = this.internalIdMap.get(action.__id)!;
@@ -345,16 +347,15 @@ export default class SysTray extends EventEmitter<Events> {
       if (this._conf.debug) {
         log('%s %o', 'writeLine', line + '\n', '=====');
       }
-      const process = this._command.spawn();
+
       const encoded = new TextEncoder().encode(`${line.trim()}\n`);
-      const writer = await process.stdin.getWriter();
-      await writer.write(encoded);
-      writer.releaseLock();
+      const writer = this._systrayChildProcess?.stdin.getWriter();
+      await writer?.write(encoded);
+      writer?.releaseLock();
     }
   }
 
   async sendAction(action: Action) {
-    console.log('SENDING ACTION', action);
     switch (action.type) {
       case 'update-item':
         updateCheckedInLinux(action.item);
@@ -363,11 +364,11 @@ export default class SysTray extends EventEmitter<Events> {
         }
         break;
       case 'update-menu':
-        action.menu = await resolveIcon(action.menu) as Menu;
+        action.menu = (await resolveIcon(action.menu)) as Menu;
         action.menu.items.forEach(updateCheckedInLinux);
         break;
       case 'update-menu-and-item':
-        action.menu = await resolveIcon(action.menu) as Menu;
+        action.menu = (await resolveIcon(action.menu)) as Menu;
         action.menu.items.forEach(updateCheckedInLinux);
         updateCheckedInLinux(action.item);
         if (action.seq_id == null) {
