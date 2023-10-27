@@ -201,8 +201,8 @@ const getTrayPath = async () => {
       break;
     case 'linux':
       binName = arch === 'x86_64'
-        ? `${url}/tray_linux_arm64`
-        : `${url}/tray_linux_amd64`;
+        ? `${url}/tray_linux_amd64`
+        : `${url}/tray_linux_arm64`;
       break;
     default:
       throw new Error('Unsupported OS for tray application');
